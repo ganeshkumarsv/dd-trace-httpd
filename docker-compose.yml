@@ -1,0 +1,21 @@
+version: "3.2"
+services:
+  traced-httpd-ubuntu1804:
+    build:
+      context: .
+      dockerfile: docker/ubuntu1804/Dockerfile
+    ports:
+      - 9292:80
+
+  dd-agent:
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+      - '/proc/:/host/proc/:ro'
+      - '/sys/fs/cgroup/:/host/sys/fs/cgroup:ro'
+    environment:
+      - DD_API_KEY
+      - DD_APM_ENABLED=true
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_AC_EXCLUDE=name:datadog-agent
+    image: 'datadog/agent:7'

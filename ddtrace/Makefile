@@ -19,8 +19,8 @@ CXX = x86_64-linux-gnu-g++
 CFLAGS = -Wall -Wextra -Werror -Wno-unused-parameter
 CXXFLAGS = -Wall -Wextra -Werror -Wnon-virtual-dtor -Woverloaded-virtual -Wold-style-cast -std=c++14
 # MOD_CXXFLAGS = -std=c++14
-MOD_INCLUDES = -I/home/ubuntu/datadog/dd-opentracing-cpp/include -I/home/ubuntu/datadog/dd-opentracing-cpp/deps/include
-SH_LIBS = -L/home/ubuntu/datadog/dd-opentracing-cpp/.build -L/home/ubuntu/datadog/dd-opentracing-cpp/deps/lib -lstdc++ -Xlinker -Bstatic -ldd_opentracing -lopentracing -Wl,-Bdynamic
+MOD_INCLUDES = -I../../dd-opentracing-cpp/include -I../../dd-opentracing-cpp/deps/include
+SH_LIBS = -L../../dd-opentracing-cpp/.build -L../../dd-opentracing-cpp/deps/lib -lstdc++ -Xlinker -Bstatic -ldd_opentracing -lopentracing -Wl,-Bdynamic
 
 #   the default target
 all: local-shared-build
