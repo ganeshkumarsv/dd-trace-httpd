@@ -75,14 +75,14 @@ void ddtrace_start_span(request_rec *r) {
   if (r->main != NULL) {
     // we should have an active span for the main request to "parent" off of
     options.references.emplace_back(opentracing::SpanReferenceType::ChildOfRef, &active_spans[r]->context());
-    ap_log_error(APLOG_MARK, APLOG_ERR, 0, NULL, "ddtrace_start_span: child of main request");
+    ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, NULL, "ddtrace_start_span: child of main request");
   } else {
     // use a propagated context if available;
     auto span_context_maybe = tracer->Extract(HeadersReader{r->headers_in});
     if (span_context_maybe) {
       propagated_context = std::move(*span_context_maybe);
       options.references.emplace_back(opentracing::SpanReferenceType::ChildOfRef, propagated_context.get());
-      ap_log_error(APLOG_MARK, APLOG_ERR, 0, NULL, "ddtrace_start_span: propagated context");
+      ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, NULL, "ddtrace_start_span: propagated context");
     }
   }
   options.tags.emplace_back(datadog::tags::span_type, "web");
@@ -101,7 +101,7 @@ void ddtrace_start_span(request_rec *r) {
   }
   span->SetTag("httpd.server_config", std::string(r->server->defn_name) + ":" + std::to_string(r->server->defn_line_number));
   active_spans[r] = std::move(span);
-  ap_log_error(APLOG_MARK, APLOG_ERR, 0, NULL, "ddtrace_start_span: active_spans = %lu", active_spans.size());
+  ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, NULL, "ddtrace_start_span: active_spans = %lu", active_spans.size());
   tracer->Inject(active_spans[r]->context(), HeadersWriter{r->headers_in});
 }
 
@@ -129,6 +129,6 @@ void ddtrace_finish_span(request_rec *r) {
   }
   active_spans[r]->Finish();
   active_spans.erase(r);
-  ap_log_error(APLOG_MARK, APLOG_ERR, 0, NULL, "ddtrace_finish_span: active_spans = %lu", active_spans.size());
+  ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, NULL, "ddtrace_finish_span: active_spans = %lu", active_spans.size());
 }
 
