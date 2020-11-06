@@ -9,8 +9,8 @@ RUN make && g++ -shared -fPIC -DPIC .libs/mod_ddtrace.o .libs/ddtrace.o -L../../
 
 FROM ubuntu:18.04
 RUN apt-get update && apt-get -y install apache2
-COPY --from=build /var/tmp/localbuild/ddtrace/.libs/mod_ddtrace.so /usr/lib/apache2/modules/mod_ddtrace.so
+COPY --from=build /var/tmp/localbuild/dd-trace-httpd/ddtrace/.libs/mod_ddtrace.so /usr/lib/apache2/modules/mod_ddtrace.so
 COPY docker/ubuntu1804/ddtrace.load /etc/apache2/mods-available/
 RUN a2enmod ddtrace
-RUN printf "%s\n" "export DD_SERVICE=custom-service" "export DD_AGENT_HOST=dd-agent" >> /etc/apache2/envvars
+RUN printf "%s\n" "export DD_SERVICE=traced-httpd-ubuntu1804" "export DD_AGENT_HOST=dd-agent" >> /etc/apache2/envvars
 CMD ["apachectl", "-D", "FOREGROUND"]

@@ -86,11 +86,17 @@ void ddtrace_start_span(request_rec *r) {
     }
   }
   options.tags.emplace_back(datadog::tags::span_type, "web");
-  options.tags.emplace_back(opentracing::ext::http_url, r->uri);
-  options.tags.emplace_back(opentracing::ext::http_method, r->method);
-  options.tags.emplace_back(opentracing::ext::peer_address, r->useragent_ip);
+  if (r->uri != NULL) {
+    options.tags.emplace_back(opentracing::ext::http_url, r->uri);
+  }
+  if (r->method != NULL) {
+    options.tags.emplace_back(opentracing::ext::http_method, r->method);
+  }
+  if (r->useragent_ip != NULL) {
+    options.tags.emplace_back(opentracing::ext::peer_address, r->useragent_ip);
+  }
 
-  // need to filter "the_request" to remove query parameters.
+  // TODO: need to filter "the_request" to remove query parameters.
   auto span = tracer->StartSpanWithOptions(r->the_request, options);
   auto user_agent = apr_table_get(r->headers_in, "User-Agent");
   if (user_agent != NULL) {
@@ -99,7 +105,9 @@ void ddtrace_start_span(request_rec *r) {
   if (r->ap_auth_type != NULL) {
     span->SetTag("http.auth_type", r->ap_auth_type);
   }
-  span->SetTag("httpd.server_config", std::string(r->server->defn_name) + ":" + std::to_string(r->server->defn_line_number));
+  if (r->server != NULL && r->server->defn_name != NULL && r->server->defn_line_number != 0) {
+    span->SetTag("httpd.server_config", std::string(r->server->defn_name) + ":" + std::to_string(r->server->defn_line_number));
+  }
   active_spans[r] = std::move(span);
   ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, NULL, "ddtrace_start_span: active_spans = %lu", active_spans.size());
   tracer->Inject(active_spans[r]->context(), HeadersWriter{r->headers_in});

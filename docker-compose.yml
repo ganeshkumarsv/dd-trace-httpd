@@ -7,6 +7,13 @@ services:
     ports:
       - 9292:80
 
+  traced-httpd-centos6:
+    build:
+      context: .
+      dockerfile: docker/centos6/Dockerfile
+    ports:
+      - 9393:80
+
   dd-agent:
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock:ro'

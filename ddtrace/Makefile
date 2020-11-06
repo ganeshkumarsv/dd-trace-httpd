@@ -4,9 +4,9 @@
 ##
 
 builddir=.
-top_srcdir=/usr/share/apache2
-top_builddir=/usr/share/apache2
-include /usr/share/apache2/build/special.mk
+apxs_builddir=$(shell apxs -q installbuilddir)
+top_builddir=$(apxs_builddir)/..
+include $(apxs_builddir)/special.mk
 
 #   the used tools
 APACHECTL=apachectl
@@ -15,8 +15,8 @@ APACHECTL=apachectl
 #DEFS=-Dmy_define=my_value
 #INCLUDES=-Imy/include/dir
 #LIBS=-Lmy/lib/dir -lmylib
-CXX = x86_64-linux-gnu-g++
-CFLAGS = -Wall -Wextra -Werror -Wno-unused-parameter
+CXX = g++
+CFLAGS = -Wall -Wextra -Werror -Wno-unused-parameter -Wno-missing-field-initializers
 CXXFLAGS = -Wall -Wextra -Werror -Wnon-virtual-dtor -Woverloaded-virtual -Wold-style-cast -std=c++14
 # MOD_CXXFLAGS = -std=c++14
 MOD_INCLUDES = -I../../dd-opentracing-cpp/include -I../../dd-opentracing-cpp/deps/include
