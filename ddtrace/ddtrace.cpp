@@ -10,7 +10,7 @@ APLOG_USE_MODULE(ddtrace);
 namespace {
 
 std::shared_ptr<opentracing::Tracer> tracer;
-std::unordered_map<request_rec*, std::unique_ptr<opentracing::Span>> active_spans;
+std::unordered_map<request_rec *, std::unique_ptr<opentracing::Span>> active_spans;
 
 struct HeadersReader : opentracing::TextMapReader {
   HeadersReader(const apr_table_t *h) : headers(h) {}
@@ -23,19 +23,19 @@ struct HeadersReader : opentracing::TextMapReader {
     return opentracing::make_unexpected(opentracing::key_not_found_error);
   }
 
-  opentracing::expected<void> ForeachKey(
-      std::function<opentracing::expected<void>(opentracing::string_view key, opentracing::string_view value)> f)
-    const override {
-      const apr_array_header_t *arr = apr_table_elts(headers);
-      const apr_table_entry_t *elts = reinterpret_cast<const apr_table_entry_t *>(arr->elts);
-      for (int i = 0; i < arr->nelts; i++) {
-        auto result = f(elts[i].key, elts[i].val);
-        if (!result) {
-          return result;
-        }
+  opentracing::expected<void>
+  ForeachKey(std::function<opentracing::expected<void>(opentracing::string_view key, opentracing::string_view value)> f)
+      const override {
+    const apr_array_header_t *arr = apr_table_elts(headers);
+    const apr_table_entry_t *elts = reinterpret_cast<const apr_table_entry_t *>(arr->elts);
+    for (int i = 0; i < arr->nelts; i++) {
+      auto result = f(elts[i].key, elts[i].val);
+      if (!result) {
+        return result;
       }
-      return {};
     }
+    return {};
+  }
 
   const apr_table_t *headers = NULL;
 };
@@ -64,10 +64,11 @@ void ddtrace_create_tracer() {
   options.operation_name_override = "apache.request";
   ap_version_t httpd_version;
   ap_get_server_revision(&httpd_version);
-  options.version = "httpd " + std::to_string(httpd_version.major) + "." + std::to_string(httpd_version.minor) + "." + std::to_string(httpd_version.patch) + httpd_version.add_string;
+  options.version = "httpd " + std::to_string(httpd_version.major) + "." + std::to_string(httpd_version.minor) + "." +
+                    std::to_string(httpd_version.patch) + httpd_version.add_string;
   tracer = datadog::opentracing::makeTracer(options);
 }
-     
+
 void ddtrace_start_span(request_rec *r) {
   opentracing::StartSpanOptions options;
   std::unique_ptr<opentracing::SpanContext> propagated_context;
@@ -106,7 +107,8 @@ void ddtrace_start_span(request_rec *r) {
     span->SetTag("http.auth_type", r->ap_auth_type);
   }
   if (r->server != NULL && r->server->defn_name != NULL && r->server->defn_line_number != 0) {
-    span->SetTag("httpd.server_config", std::string(r->server->defn_name) + ":" + std::to_string(r->server->defn_line_number));
+    span->SetTag("httpd.server_config",
+                 std::string(r->server->defn_name) + ":" + std::to_string(r->server->defn_line_number));
   }
   active_spans[r] = std::move(span);
   ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, NULL, "ddtrace_start_span: active_spans = %lu", active_spans.size());
@@ -139,4 +141,3 @@ void ddtrace_finish_span(request_rec *r) {
   active_spans.erase(r);
   ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, NULL, "ddtrace_finish_span: active_spans = %lu", active_spans.size());
 }
-
