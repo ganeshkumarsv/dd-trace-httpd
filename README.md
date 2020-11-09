@@ -18,7 +18,7 @@ Pre-compiled packages are not available at this time.
 
 ## Build From Source
 
-Building this project from source requires the (dd-opentracing-cpp)[https://github.com/DataDog/dd-opentracing-cpp] library.
+Building this project from source requires the [dd-opentracing-cpp](https://github.com/DataDog/dd-opentracing-cpp) library.
 This requires a C++14 compiler. For older Linux distros, this may not be available from the primary repositories.
 
 Module installation and configuration files also differ between linux distributions.
