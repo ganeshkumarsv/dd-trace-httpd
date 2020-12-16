@@ -51,6 +51,16 @@ struct HeadersWriter : opentracing::TextMapWriter {
   apr_table_t *headers = NULL;
 };
 
+std::string resource_from_request(request_rec *r) {
+  std::string resource;
+  resource += r->method;
+  resource += " ";
+  resource += r->uri;
+  resource += " ";
+  resource += r->protocol;
+  return resource;
+}
+
 } //  namespace
 
 int apr_table_len(const apr_table_t *h) {
@@ -98,7 +108,7 @@ void ddtrace_start_span(request_rec *r) {
   }
 
   // TODO: need to filter "the_request" to remove query parameters.
-  auto span = tracer->StartSpanWithOptions(r->the_request, options);
+  auto span = tracer->StartSpanWithOptions(resource_from_request(r), options);
   auto user_agent = apr_table_get(r->headers_in, "User-Agent");
   if (user_agent != NULL) {
     span->SetTag("http.user_agent", user_agent);
