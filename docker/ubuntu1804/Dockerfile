@@ -1,8 +1,8 @@
 FROM ubuntu:18.04 AS build
 RUN apt-get update && apt-get -y install build-essential apache2-dev cmake git wget
-RUN mkdir -p /var/tmp/localbuild/dd-trace-httpd/ddtrace
+RUN mkdir -p /var/tmp/localbuild/dd-opentracing-cpp /var/tmp/localbuild/dd-trace-httpd/ddtrace
 WORKDIR /var/tmp/localbuild
-RUN cd /var/tmp/localbuild && git clone -b cgilmour/pic https://github.com/DataDog/dd-opentracing-cpp && cd dd-opentracing-cpp && ./scripts/install_dependencies.sh && mkdir .build && cd .build && cmake -DBUILD_SHARED=Off -DBUILD_STATIC=On .. && make && make install
+RUN cd /var/tmp/localbuild && wget https://github.com/DataDog/dd-opentracing-cpp/archive/b7c44dbd942bb064dac75b66d76b5d97f79a3f3c.tar.gz && tar zxf b7c44dbd942bb064dac75b66d76b5d97f79a3f3c.tar.gz -C dd-opentracing-cpp --strip-components=1 && cd dd-opentracing-cpp && ./scripts/install_dependencies.sh && mkdir .build && cd .build && cmake -DBUILD_SHARED=Off -DBUILD_STATIC=On .. && make && make install
 ADD ddtrace/ddtrace.h ddtrace/ddtrace.cpp ddtrace/mod_ddtrace.c ddtrace/Makefile ddtrace/modules.mk ddtrace/.deps /var/tmp/localbuild/dd-trace-httpd/ddtrace/
 WORKDIR /var/tmp/localbuild/dd-trace-httpd/ddtrace
 RUN make && g++ -shared -fPIC -DPIC .libs/mod_ddtrace.o .libs/ddtrace.o -L../../dd-opentracing-cpp/.build -L../../dd-opentracing-cpp/deps/lib -Wl,-Bstatic -ldd_opentracing -lopentracing -lcurl -lz -Wl,-Bdynamic -lpthread -O2 -Wl,--as-needed -Wl,-Bsymbolic-functions -Wl,-z -Wl,relro -Wl,-z -Wl,now -Wl,-soname -Wl,mod_ddtrace.so -o .libs/mod_ddtrace.so
