@@ -10,9 +10,9 @@ ENV MANPATH=/opt/rh/devtoolset-9/root/usr/share/man: \
     PATH=/opt/rh/devtoolset-9/root/usr/bin:/opt/rh/httpd24/root/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
     PKG_CONFIG_PATH=/opt/rh/devtoolset-9/root/usr/lib64/pkgconfig \
     INFOPATH=/opt/rh/devtoolset-9/root/usr/share/info
-RUN mkdir -p /var/tmp/localbuild/dd-trace-httpd/ddtrace
+RUN mkdir -p /var/tmp/localbuild/dd-opentracing-cpp /var/tmp/localbuild/dd-trace-httpd/ddtrace
 WORKDIR /var/tmp/localbuild
-RUN cd /var/tmp/localbuild && git clone -b cgilmour/pic https://github.com/DataDog/dd-opentracing-cpp && cd dd-opentracing-cpp && ./scripts/install_dependencies.sh && mkdir .build && cd .build && cmake -DBUILD_SHARED=Off -DBUILD_STATIC=On .. && make && make install
+RUN cd /var/tmp/localbuild && wget https://github.com/DataDog/dd-opentracing-cpp/archive/b7c44dbd942bb064dac75b66d76b5d97f79a3f3c.tar.gz && tar zxf b7c44dbd942bb064dac75b66d76b5d97f79a3f3c.tar.gz -C dd-opentracing-cpp --strip-components=1 && cd dd-opentracing-cpp && ./scripts/install_dependencies.sh && mkdir .build && cd .build && cmake -DBUILD_SHARED=Off -DBUILD_STATIC=On .. && make && make install
 ADD ddtrace/ddtrace.h ddtrace/ddtrace.cpp ddtrace/mod_ddtrace.c ddtrace/Makefile ddtrace/modules.mk ddtrace/.deps /var/tmp/localbuild/dd-trace-httpd/ddtrace/
 WORKDIR /var/tmp/localbuild/dd-trace-httpd/ddtrace
 RUN make && g++ -shared -fPIC -DPIC .libs/mod_ddtrace.o .libs/ddtrace.o -L../../dd-opentracing-cpp/.build -L../../dd-opentracing-cpp/deps/lib -Wl,-Bstatic -ldd_opentracing -lopentracing -lcurl -lz -Wl,-Bdynamic -lpthread -lrt -O2 -Wl,--as-needed -Wl,-Bsymbolic-functions -Wl,-z -Wl,relro -Wl,-z -Wl,now -Wl,-soname -Wl,mod_ddtrace.so -o .libs/mod_ddtrace.so

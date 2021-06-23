@@ -7,12 +7,14 @@ services:
     ports:
       - 9292:80
 
-  traced-httpd-centos6:
-    build:
-      context: .
-      dockerfile: docker/centos6/Dockerfile
-    ports:
-      - 9393:80
+  # Extra hackery required since this is now officially EOL
+  # and can't even yum install
+  # traced-httpd-centos6:
+  #   build:
+  #     context: .
+  #     dockerfile: docker/centos6/Dockerfile
+  #   ports:
+  #     - 9393:80
 
   traced-httpd-centos8:
     build:
