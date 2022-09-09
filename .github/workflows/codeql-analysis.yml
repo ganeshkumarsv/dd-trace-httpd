@@ -39,6 +39,7 @@ jobs:
         # queries: ./path/to/local/query, your-org/your-repo/queries@main
 
     - run: |
+        cd ddtrace
         make all
 
     - name: Perform CodeQL Analysis
